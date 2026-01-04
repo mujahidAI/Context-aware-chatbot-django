@@ -1,348 +1,369 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChatGPT</title>
     <link rel="icon" href="https://chat.openai.com/favicon.ico" />
     <style>
-        :root {
-            --primary-bg: #343541;
-            --secondary-bg: #444654;
-            --header-bg: #202123;
-            --user-bubble-bg: #2a2b32;
-            --bot-bubble-bg: #444654;
-            --input-bg: #40414f;
-            --input-border: #353740;
-            --send-btn-bg: #19c37d;
-            --send-btn-hover: #15a06a;
-            --text-color: #ececf1;
-            --font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+      :root {
+        --primary-bg: #343541;
+        --secondary-bg: #444654;
+        --header-bg: #202123;
+        --user-bubble-bg: #2a2b32;
+        --bot-bubble-bg: #444654;
+        --input-bg: #40414f;
+        --input-border: #353740;
+        --send-btn-bg: #19c37d;
+        --send-btn-hover: #15a06a;
+        --text-color: #ececf1;
+        --font-family: "Inter", "Segoe UI", "Arial", sans-serif;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: var(--primary-bg);
+        color: var(--text-color);
+        font-family: var(--font-family);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .chatgpt-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .chat-header {
+        background: var(--header-bg);
+        padding: 16px 0;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--input-border);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .chat-messages {
+        flex: 1;
+        padding: 32px 0 24px 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .message-row {
+        display: flex;
+        width: 100%;
+        background: none;
+        padding: 0 0;
+      }
+      .message-row.user {
+        background: var(--user-bubble-bg);
+      }
+      .message-row.assistant {
+        background: var(--bot-bubble-bg);
+      }
+      .message-inner {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 24px 16px;
+        box-sizing: border-box;
+      }
+      .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 4px;
+        margin-right: 16px;
+        flex-shrink: 0;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .avatar img {
+        width: 36px;
+        height: 36px;
+        border-radius: 4px;
+      }
+      .message-content {
+        color: var(--text-color);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        word-break: break-word;
+        white-space: pre-wrap;
+        width: 100%;
+      }
+      .chat-input-area {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto 24px auto;
+        display: flex;
+        align-items: flex-end;
+        padding: 0 16px;
+      }
+      .chat-input-form {
+        display: flex;
+        flex: 1;
+        background: var(--input-bg);
+        border-radius: 8px;
+        border: 1px solid var(--input-border);
+        padding: 8px 12px;
+        align-items: flex-end;
+      }
+      .chat-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.05rem;
+        padding: 8px 0;
+        outline: none;
+        resize: none;
+        min-height: 28px;
+        max-height: 160px;
+        line-height: 1.5;
+      }
+      .send-btn {
+        background: var(--send-btn-bg);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0 18px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-left: 10px;
+        cursor: pointer;
+        height: 38px;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .send-btn:hover:not(:disabled) {
+        background: var(--send-btn-hover);
+      }
+      @media (max-width: 800px) {
+        .chat-messages,
+        .chat-input-area {
+          max-width: 100vw;
+          padding-left: 0;
+          padding-right: 0;
         }
-        html, body {
-            height: 100%;
-        }
-        body {
-            background: var(--primary-bg);
-            color: var(--text-color);
-            font-family: var(--font-family);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .chatgpt-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+      }
+      @media (max-width: 600px) {
         .chat-header {
-            background: var(--header-bg);
-            padding: 16px 0;
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--input-border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+          font-size: 1rem;
+          padding: 12px 0;
         }
-        .chat-messages {
-            flex: 1;
-            padding: 32px 0 24px 0;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            width: 100%;
-            max-width: 720px;
-            margin: 0 auto;
-        }
-        .message-row {
-            display: flex;
-            width: 100%;
-            background: none;
-            padding: 0 0;
-        }
-        .message-row.user {
-            background: var(--user-bubble-bg);
-        }
-        .message-row.assistant {
-            background: var(--bot-bubble-bg);
+        .chat-messages,
+        .chat-input-area {
+          padding-left: 0;
+          padding-right: 0;
         }
         .message-inner {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 24px 16px;
-            box-sizing: border-box;
+          padding: 16px 8px;
         }
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 4px;
-            margin-right: 16px;
-            flex-shrink: 0;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .avatar img {
-            width: 36px;
-            height: 36px;
-            border-radius: 4px;
-        }
-        .message-content {
-            color: var(--text-color);
-            font-size: 1.05rem;
-            line-height: 1.6;
-            word-break: break-word;
-            white-space: pre-wrap;
-            width: 100%;
-        }
-        .chat-input-area {
-            width: 100%;
-            max-width: 720px;
-            margin: 0 auto 24px auto;
-            display: flex;
-            align-items: flex-end;
-            padding: 0 16px;
-        }
-        .chat-input-form {
-            display: flex;
-            flex: 1;
-            background: var(--input-bg);
-            border-radius: 8px;
-            border: 1px solid var(--input-border);
-            padding: 8px 12px;
-            align-items: flex-end;
-        }
-        .chat-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.05rem;
-            padding: 8px 0;
-            outline: none;
-            resize: none;
-            min-height: 28px;
-            max-height: 160px;
-            line-height: 1.5;
-        }
-        .send-btn {
-            background: var(--send-btn-bg);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 0 18px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-left: 10px;
-            cursor: pointer;
-            height: 38px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .send-btn:hover:not(:disabled) {
-            background: var(--send-btn-hover);
-        }
-        @media (max-width: 800px) {
-            .chat-messages, .chat-input-area {
-                max-width: 100vw;
-                padding-left: 0;
-                padding-right: 0;
-            }
-        }
-        @media (max-width: 600px) {
-            .chat-header {
-                font-size: 1rem;
-                padding: 12px 0;
-            }
-            .chat-messages, .chat-input-area {
-                padding-left: 0;
-                padding-right: 0;
-            }
-            .message-inner {
-                padding: 16px 8px;
-            }
-        }
-        /* Scrollbar styling */
-        .chat-messages {
-            scrollbar-width: thin;
-            scrollbar-color: #565869 #2a2b32;
-        }
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #565869;
-            border-radius: 4px;
-        }
-        .chat-messages::-webkit-scrollbar-track {
-            background: #2a2b32;
-        }
+      }
+      /* Scrollbar styling */
+      .chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: #565869 #2a2b32;
+      }
+      .chat-messages::-webkit-scrollbar {
+        width: 8px;
+      }
+      .chat-messages::-webkit-scrollbar-thumb {
+        background: #565869;
+        border-radius: 4px;
+      }
+      .chat-messages::-webkit-scrollbar-track {
+        background: #2a2b32;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="chatgpt-main">
-        <div class="chat-header">
-            <span>ChatGPT</span>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <div class="message-row assistant">
-                <div class="message-inner">
-                    <div class="avatar">
-                        <img src="https://chat.openai.com/favicon-32x32.png" alt="ChatGPT" />
-                    </div>
-                    <div class="message-content">Hello! How can I help you today?</div>
-                </div>
+      <div class="chat-header">
+        <span>ChatGPT</span>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="message-row assistant">
+          <div class="message-inner">
+            <div class="avatar">
+              <img
+                src="https://chat.openai.com/favicon-32x32.png"
+                alt="ChatGPT"
+              />
             </div>
+            <div class="message-content">Hello! How can I help you today?</div>
+          </div>
         </div>
-        <div class="chat-input-area">
-            <form class="chat-input-form" id="chat-form" autocomplete="off">
-                <textarea id="chat-input" class="chat-input" placeholder="Message ChatGPT…" rows="1" autofocus required></textarea>
-                <button type="submit" class="send-btn" id="send-btn" aria-label="Send message">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
-                        <path d="M3.5 17l13-7-13-7v5.5l9 1.5-9 1.5V17z" fill="currentColor"/>
-                    </svg>
-                </button>
-            </form>
-        </div>
+      </div>
+      <div class="chat-input-area">
+        <form class="chat-input-form" id="chat-form" autocomplete="off">
+          <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="Message ChatGPT…"
+            rows="1"
+            autofocus
+            required
+          ></textarea>
+          <button
+            type="submit"
+            class="send-btn"
+            id="send-btn"
+            aria-label="Send message"
+          >
+            <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+              <path
+                d="M3.5 17l13-7-13-7v5.5l9 1.5-9 1.5V17z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+        </form>
+      </div>
     </div>
     <script>
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const chatMessages = document.getElementById('chat-messages');
-        const sendBtn = document.getElementById('send-btn');
+      const chatForm = document.getElementById("chat-form");
+      const chatInput = document.getElementById("chat-input");
+      const chatMessages = document.getElementById("chat-messages");
+      const sendBtn = document.getElementById("send-btn");
 
-        // Autosize textarea
-        function autoResizeTextarea() {
-            chatInput.style.height = 'auto';
-            chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
-        }
-        chatInput.addEventListener('input', autoResizeTextarea);
+      // Autosize textarea
+      function autoResizeTextarea() {
+        chatInput.style.height = "auto";
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + "px";
+      }
+      chatInput.addEventListener("input", autoResizeTextarea);
 
-        // Enable/disable send button
-        function updateSendBtn() {
-            sendBtn.disabled = !chatInput.value.trim();
+      // Enable/disable send button
+      function updateSendBtn() {
+        sendBtn.disabled = !chatInput.value.trim();
+      }
+      chatInput.addEventListener("input", updateSendBtn);
+      updateSendBtn();
+
+      // Scroll to bottom
+      function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      // Add message to chat
+      function addMessage(role, content) {
+        const row = document.createElement("div");
+        row.className = `message-row ${role}`;
+        const inner = document.createElement("div");
+        inner.className = "message-inner";
+
+        // Avatar
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        if (role === "user") {
+          avatar.innerHTML = `<img src="https://chat.openai.com/user-avatar.png" alt="User" />`;
+        } else {
+          avatar.innerHTML = `<img src="https://chat.openai.com/favicon-32x32.png" alt="ChatGPT" />`;
         }
-        chatInput.addEventListener('input', updateSendBtn);
+        inner.appendChild(avatar);
+
+        // Message content
+        const msgContent = document.createElement("div");
+        msgContent.className = "message-content";
+        msgContent.textContent = content;
+        inner.appendChild(msgContent);
+
+        row.appendChild(inner);
+        chatMessages.appendChild(row);
+        scrollToBottom();
+      }
+
+      // Simulate typing effect for assistant
+      function typeAssistantMessage(text, callback) {
+        const row = document.createElement("div");
+        row.className = "message-row assistant";
+        const inner = document.createElement("div");
+        inner.className = "message-inner";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.innerHTML = `<img src="https://chat.openai.com/favicon-32x32.png" alt="ChatGPT" />`;
+        inner.appendChild(avatar);
+
+        const msgContent = document.createElement("div");
+        msgContent.className = "message-content";
+        inner.appendChild(msgContent);
+
+        row.appendChild(inner);
+        chatMessages.appendChild(row);
+        scrollToBottom();
+
+        let i = 0;
+        function type() {
+          if (i <= text.length) {
+            msgContent.textContent = text.slice(0, i);
+            scrollToBottom();
+            i++;
+            setTimeout(type, 12 + Math.random() * 18);
+          } else if (callback) {
+            callback();
+          }
+        }
+        type();
+      }
+
+      // Dummy bot response for demonstration
+      function getBotResponse(userMessage) {
+        // In a real app, you would make an AJAX call to your backend here
+        return "You said: " + userMessage;
+      }
+
+      chatForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const userMessage = chatInput.value.trim();
+        if (!userMessage) return;
+
+        addMessage("user", userMessage);
+
+        chatInput.value = "";
+        autoResizeTextarea();
         updateSendBtn();
+        chatInput.focus();
 
-        // Scroll to bottom
-        function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Simulate bot response with typing effect
+        setTimeout(() => {
+          typeAssistantMessage(getBotResponse(userMessage));
+        }, 400);
+      });
+
+      // Submit on Enter, new line on Shift+Enter
+      chatInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          if (!sendBtn.disabled) {
+            chatForm.requestSubmit();
+          }
         }
-
-        // Add message to chat
-        function addMessage(role, content) {
-            const row = document.createElement('div');
-            row.className = `message-row ${role}`;
-            const inner = document.createElement('div');
-            inner.className = 'message-inner';
-
-            // Avatar
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar';
-            if (role === 'user') {
-                avatar.innerHTML = `<img src="https://chat.openai.com/user-avatar.png" alt="User" />`;
-            } else {
-                avatar.innerHTML = `<img src="https://chat.openai.com/favicon-32x32.png" alt="ChatGPT" />`;
-            }
-            inner.appendChild(avatar);
-
-            // Message content
-            const msgContent = document.createElement('div');
-            msgContent.className = 'message-content';
-            msgContent.textContent = content;
-            inner.appendChild(msgContent);
-
-            row.appendChild(inner);
-            chatMessages.appendChild(row);
-            scrollToBottom();
-        }
-
-        // Simulate typing effect for assistant
-        function typeAssistantMessage(text, callback) {
-            const row = document.createElement('div');
-            row.className = 'message-row assistant';
-            const inner = document.createElement('div');
-            inner.className = 'message-inner';
-
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar';
-            avatar.innerHTML = `<img src="https://chat.openai.com/favicon-32x32.png" alt="ChatGPT" />`;
-            inner.appendChild(avatar);
-
-            const msgContent = document.createElement('div');
-            msgContent.className = 'message-content';
-            inner.appendChild(msgContent);
-
-            row.appendChild(inner);
-            chatMessages.appendChild(row);
-            scrollToBottom();
-
-            let i = 0;
-            function type() {
-                if (i <= text.length) {
-                    msgContent.textContent = text.slice(0, i);
-                    scrollToBottom();
-                    i++;
-                    setTimeout(type, 12 + Math.random() * 18);
-                } else if (callback) {
-                    callback();
-                }
-            }
-            type();
-        }
-
-        // Dummy bot response for demonstration
-        function getBotResponse(userMessage) {
-            // In a real app, you would make an AJAX call to your backend here
-            return "You said: " + userMessage;
-        }
-
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-
-            addMessage('user', userMessage);
-
-            chatInput.value = '';
-            autoResizeTextarea();
-            updateSendBtn();
-            chatInput.focus();
-
-            // Simulate bot response with typing effect
-            setTimeout(() => {
-                typeAssistantMessage(getBotResponse(userMessage));
-            }, 400);
-        });
-
-        // Submit on Enter, new line on Shift+Enter
-        chatInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!sendBtn.disabled) {
-                    chatForm.requestSubmit();
-                }
-            }
-        });
+      });
     </script>
-</body>
+  </body>
 </html>
