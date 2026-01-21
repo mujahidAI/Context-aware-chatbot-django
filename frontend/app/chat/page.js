@@ -37,6 +37,15 @@ export default function Chat() {
       }
   };
 
+  const clearSession = async () => {
+      try {
+          await api.post('chat/clear/', {});
+          setMessages([]);
+      } catch (error) {
+          console.error("Error clearing session", error);
+      }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -91,6 +100,7 @@ export default function Chat() {
         <div className="auth-section">
           <span className="welcome-text" style={{marginRight: '10px'}}>Welcome, {user.username || 'User'}</span>
           <div className="auth-buttons">
+            <button onClick={clearSession} style={{marginRight: '8px'}}>Clear Chat</button>
             <button onClick={logout} className="logout-btn">Logout</button>
           </div>
         </div>
