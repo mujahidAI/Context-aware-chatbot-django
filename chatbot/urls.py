@@ -11,7 +11,9 @@ app_name = "chatbot"
 urlpatterns = [
     path("api/register/", api_views.RegisterView.as_view(), name="api_register"),
     path("api/chat/", api_views.ChatListCreateView.as_view(), name="api_chat"),
-    path("api/chat/clear/", api_views.ClearSessionView.as_view(), name="api_chat_clear"),
+    path(
+        "api/chat/clear/", api_views.ClearSessionView.as_view(), name="api_chat_clear"
+    ),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("", views.chatbot, name="chatbot"),

@@ -35,12 +35,42 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, email, password) => {
          try {
-            await api.post('register/', { username, email, password });
-            // Auto login after register
-            return await login(username, password);
+            // Attempt to register the user
+            const response = await api.post('register/', { username, email, password });
+            
+            // Only if registration succeeds, attempt to login
+            if (response.status === 201 || response.status === 200) {
+                return await login(username, password);
+            }
+            
+            return { success: false, error: 'Registration failed' };
          } catch (error) {
              console.error("Registration failed", error);
-             return { success: false, error: error.response?.data || 'Registration failed' };
+             
+             // Format error messages from backend
+             let errorMessage = 'Registration failed';
+             
+             if (error.response?.data) {
+                 const errorData = error.response.data;
+                 
+                 // Handle field-specific errors
+                 if (typeof errorData === 'object') {
+                     const errors = [];
+                     for (const [field, messages] of Object.entries(errorData)) {
+                         if (Array.isArray(messages)) {
+                             errors.push(...messages);
+                         } else {
+                             errors.push(messages);
+                         }
+                     }
+                     errorMessage = errors.join('. ');
+                 } else if (typeof errorData === 'string') {
+                     errorMessage = errorData;
+                 }
+             }
+             
+             // Return error WITHOUT attempting to login
+             return { success: false, error: errorMessage };
          }
     };
 
