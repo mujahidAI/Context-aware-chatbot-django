@@ -38,8 +38,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "corsheaders",
     "chatbot",
     "markdownify",
 ]
@@ -47,7 +45,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -145,22 +142,3 @@ EMAIL_HOST_USER = ""  # Set your email here
 EMAIL_HOST_PASSWORD = ""  # Set your email password here
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-
-# CORS Settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
-
-# Rest Framework Settings
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-}
-
-from datetime import timedelta
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-}
