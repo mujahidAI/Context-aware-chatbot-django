@@ -7,15 +7,10 @@ from .models import Chat
 from groq import Groq
 import os
 from dotenv import load_dotenv
+from .services import ask_groq, session_store
 
 load_dotenv()
 from django.utils import timezone
-from langchain_groq import ChatGroq
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.forms import PasswordResetForm
@@ -37,57 +32,6 @@ from django.contrib.sites.shortcuts import get_current_site
 # ============= IMPORTANT : READ explanation.ipynb FOR COMPLETE UNDERSTANDING ===============
 # ============= IMPORTANT : READ explanation_bot.pdf FOR COMPLETE UNDERSTANDING =============
 # ===========================================================================================
-
-
-session_store = {}
-
-
-def get_session_history(session_id: str) -> BaseChatMessageHistory:
-    if session_id not in session_store:
-        session_store[session_id] = ChatMessageHistory()
-    return session_store[session_id]
-
-
-groq_api_key = os.getenv("GROQ_API_KEY")
-
-
-def ask_groq(message, session_id="default_session", language="English"):
-    try:
-        llm = ChatGroq(model="llama-3.3-70b-versatile", groq_api_key=groq_api_key)
-        with open("system_prompt.txt", "r", encoding="utf-8") as file:
-            system_prompt = file.read().strip()
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                #                 The MessagesPlaceholder Behavior
-                # The MessagesPlaceholder(variable_name="messages") doesn't just insert the current message. It inserts the entire conversation thread for that session, which includes:
-                # All previous HumanMessage objects (user inputs)
-                # All previous AIMessage objects (AI responses)
-                # The current new HumanMessage (user's latest query)
-                # This is why the AI can remember earlier parts of the conversation - it literally receives the complete chat history every time, not just the latest message.
-                # Memory vs. Context Window
-                # The RunnableWithMessageHistory automatically manages this by:
-                # Retrieving stored conversation history for the session
-                # Appending the new user message
-                # Sending everything together to the LLM
-                # Storing the AI's response for future conversations
-                # This is different from the LLM having "memory" - it's getting the full context each time, which creates the illusion of memory.
-                ("system", system_prompt),
-                MessagesPlaceholder(variable_name="messages"),
-            ]
-        )
-        chain = prompt | llm
-        with_message_history = RunnableWithMessageHistory(
-            chain, get_session_history, input_messages_key="messages"
-        )
-        config = {"configurable": {"session_id": session_id}}
-
-        response = with_message_history.invoke(
-            {"messages": [HumanMessage(content=message)]}, config=config
-        )
-        return response.content
-
-    except Exception as e:
-        return f"Error: {str(e)}"
 
 
 @login_required(login_url="chatbot:login")
