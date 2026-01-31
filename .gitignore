@@ -21,7 +21,7 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
+pip-wheel- /
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -142,3 +142,15 @@ staticfiles/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node.js / Frontend
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# Backend specific paths
+backend/venv/
+backend/.env
+backend/db.sqlite3

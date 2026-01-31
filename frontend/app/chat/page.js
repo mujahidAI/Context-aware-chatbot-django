@@ -5,12 +5,15 @@ import api from '../../lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../../components/Sidebar';
 
 export default function Chat() {
   const { user, logout, loading } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentModel, setCurrentModel] = useState('llama-3.3-70b-versatile');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const router = useRouter();
@@ -24,6 +27,7 @@ export default function Chat() {
   useEffect(() => {
       if (user) {
           fetchMessages();
+          fetchCurrentModel();
       }
   }, [user]);
 
@@ -34,6 +38,17 @@ export default function Chat() {
           scrollToBottom();
       } catch (error) {
           console.error("Error fetching messages", error);
+      }
+  };
+
+  const fetchCurrentModel = async () => {
+      try {
+          const res = await api.get('user-api-key/');
+          if (res.data.selected_model) {
+              setCurrentModel(res.data.selected_model);
+          }
+      } catch (error) {
+          // Ignore if no API key configured
       }
   };
 
@@ -70,15 +85,18 @@ export default function Chat() {
     setIsTyping(true);
 
     try {
-        const res = await api.post('chat/', { message: input }); // API call
-        // Replace temp message with actual response
+        const res = await api.post('chat/', { message: input });
         setMessages(prev => prev.map(msg => msg.id === tempMessage.id ? res.data : msg));
     } catch (error) {
         console.error("Error sending message", error);
-        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id)); // Remove failed message
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
     } finally {
         setIsTyping(false);
     }
+  };
+
+  const handleModelChange = (model) => {
+    setCurrentModel(model);
   };
 
   if (loading) return <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', color: '#fff'}}>Loading...</div>;
@@ -86,8 +104,27 @@ export default function Chat() {
 
   return (
     <div className="chat-container">
+      {/* Sidebar Component */}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+        onModelChange={handleModelChange}
+      />
+
       <div className="chat-header">
-        <div className="chat-title">💬 Chat</div>
+        <div className="header-left">
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen(true)}
+            title="Settings"
+          >
+            ⚙️
+          </button>
+          <div className="chat-title">💬 Chat</div>
+          <div className="model-badge" title="Current model">
+            {currentModel.split('-').slice(0, 2).join(' ')}
+          </div>
+        </div>
         <div className="auth-section">
           <span className="welcome-text" style={{marginRight: '10px'}}>Welcome, {user.username || 'User'}</span>
           <div className="auth-buttons">
