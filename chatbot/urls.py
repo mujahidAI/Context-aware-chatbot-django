@@ -14,6 +14,12 @@ urlpatterns = [
     path(
         "api/chat/clear/", api_views.ClearSessionView.as_view(), name="api_chat_clear"
     ),
+    path(
+        "api/user-api-key/", api_views.UserAPIKeyView.as_view(), name="user_api_key"
+    ),
+    path(
+        "api/available-models/", api_views.AvailableModelsView.as_view(), name="available_models"
+    ),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("", views.chatbot, name="chatbot"),
