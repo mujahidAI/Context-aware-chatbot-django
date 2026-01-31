@@ -16,6 +16,18 @@ urlpatterns = [
     ),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # New API key and model management endpoints
+    path("api/user-api-key/", api_views.UserAPIKeyView.as_view(), name="api_user_key"),
+    path(
+        "api/available-models/",
+        api_views.AvailableModelsView.as_view(),
+        name="api_available_models",
+    ),
+    path(
+        "api/select-model/",
+        api_views.UpdateSelectedModelView.as_view(),
+        name="api_select_model",
+    ),
     path("", views.chatbot, name="chatbot"),
     path("login/", views.login, name="login"),
     path("register/", views.register, name="register"),
