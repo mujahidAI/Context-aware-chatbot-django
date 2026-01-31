@@ -5,12 +5,14 @@ import api from '../../lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useRouter } from 'next/navigation';
+import Sidebar from '../../components/Sidebar';
 
 export default function Chat() {
   const { user, logout, loading } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const router = useRouter();
@@ -86,8 +88,19 @@ export default function Chat() {
 
   return (
     <div className="chat-container">
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
       <div className="chat-header">
-        <div className="chat-title">💬 Chat</div>
+        <div className="header-left">
+            <button
+                className="sidebar-toggle"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                title="Settings"
+            >
+                ⚙️
+            </button>
+            <div className="chat-title">💬 Chat</div>
+        </div>
         <div className="auth-section">
           <span className="welcome-text" style={{marginRight: '10px'}}>Welcome, {user.username || 'User'}</span>
           <div className="auth-buttons">
