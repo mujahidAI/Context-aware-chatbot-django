@@ -2,9 +2,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, ChatSerializer
-from .models import Chat
-from .services import ask_groq
+from .serializers import UserSerializer, ChatSerializer, UserAPIKeySerializer, AvailableModelsSerializer
+from .models import Chat, UserAPIKey
+from .services import ask_groq, get_available_models, decrypt_api_key
 from django.utils import timezone
 
 
@@ -34,7 +34,17 @@ class ChatListCreateView(generics.ListCreateAPIView):
             # Default to a persistent session for the user if none provided
             session_id = f"user_{request.user.id}"
 
-        response_text = ask_groq(message, session_id)
+        # Fetch user's API key and model
+        api_key = None
+        model = None
+        try:
+            user_api_key = UserAPIKey.objects.get(user=request.user)
+            api_key = decrypt_api_key(user_api_key.encrypted_key)
+            model = user_api_key.selected_model
+        except UserAPIKey.DoesNotExist:
+            pass
+
+        response_text = ask_groq(message, session_id, api_key=api_key, model=model)
 
         chat = Chat.objects.create(
             user=request.user,
@@ -64,3 +74,47 @@ class ClearSessionView(APIView):
             del session_store[session_id]
             return Response({"message": "Session history cleared"})
         return Response({"message": "No active session to clear"})
+
+
+class UserAPIKeyView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            user_api_key = UserAPIKey.objects.get(user=request.user)
+            serializer = UserAPIKeySerializer(user_api_key)
+            return Response(serializer.data)
+        except UserAPIKey.DoesNotExist:
+            return Response({})
+
+    def post(self, request):
+        serializer = UserAPIKeySerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            user_api_key = UserAPIKey.objects.get(user=request.user)
+            user_api_key.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except UserAPIKey.DoesNotExist:
+            return Response({"error": "No API key found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AvailableModelsView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            user_api_key = UserAPIKey.objects.get(user=request.user)
+            api_key = decrypt_api_key(user_api_key.encrypted_key)
+            if not api_key:
+                return Response({"error": "Invalid API key"}, status=status.HTTP_400_BAD_REQUEST)
+
+            models = get_available_models(api_key)
+            serializer = AvailableModelsSerializer(models, many=True)
+            return Response(serializer.data)
+        except UserAPIKey.DoesNotExist:
+             return Response({"error": "No API key found. Please save your Groq API key first."}, status=status.HTTP_404_NOT_FOUND)

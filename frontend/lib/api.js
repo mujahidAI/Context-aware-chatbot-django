@@ -59,4 +59,9 @@ api.interceptors.response.use(
     }
 );
 
+export const saveAPIKey = (apiKey, model) => api.post('user-api-key/', { api_key: apiKey, selected_model: model });
+export const getAPIKeyStatus = () => api.get('user-api-key/');
+export const deleteAPIKey = () => api.delete('user-api-key/');
+export const getAvailableModels = () => api.get('available-models/');
+
 export default api;
